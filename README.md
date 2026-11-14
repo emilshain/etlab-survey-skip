@@ -162,6 +162,7 @@ the extension cannot read any other site, and it requests no localhost access.
 ```bash
 npm install     # jsdom, tests only
 npm test        # 36 tests (15 engine + 12 wizard + 9 manifest)
+npm run icons   # regenerate icons/*.png (no dependencies)
 ```
 
 Every push runs the same suite in GitHub Actions on a clean runner.

@@ -59,4 +59,10 @@ test("every icon the manifest references exists", () => {
     assert.ok(fs.existsSync(path.join(root, p)), "missing " + p));
 });
 
+test("icons are real PNG files", () => {
+  const magic = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  Object.values(manifest.icons || {}).forEach((p) =>
+    assert.deepEqual([...fs.readFileSync(path.join(root, p)).subarray(0, 8)], magic, "not a PNG: " + p));
+});
+
 console.log('\nAll ' + passed + ' manifest tests passed.');
