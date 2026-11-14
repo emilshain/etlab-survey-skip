@@ -100,7 +100,7 @@ read any other site.
 
 ```bash
 npm install     # jsdom, tests only
-npm test        # 15 tests
+npm test        # 23 tests (15 engine + 8 manifest)
 ```
 
 The live-testing helpers in `scripts/` drive a real browser over the DevTools
@@ -134,7 +134,7 @@ extension itself never uses them):
 Against the live portal, signed in: the survey list reads correctly, a pending
 survey opens, `20 questions × 8 faculty = 160` rating targets are detected, and
 filling question 1 selected **8/8** ratings — the portal's own counter moved
-`0/160 → 8/160`. All 15 unit tests pass.
+`0/160 → 8/160`. All 23 tests pass (15 engine + 8 manifest).
 
 **Not verified:** a complete 20-question run through the final **Finish Survey**
 click, on a real account (stopped early to avoid a long live run; the
