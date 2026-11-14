@@ -104,13 +104,14 @@ and repeats until nothing is pending. For a single survey, open it and press
 | Answers | Best option | `Best` (Excellent / Strongly Agree) · `Average / middle` (Good / Neutral) · `First option` · `Specific option number` · `Random` |
 | Option # | 1 | Only for "Specific option number": 1 = first option in each question |
 | Comment boxes | `Good` | Text for empty suggestion fields |
-| Preview only | off | Fill without pressing Submit / Finish Survey |
+| Preview only | off | Report what each question would be answered without clicking anything |
 
 Settings are remembered per browser profile.
 
-> On the modern survey screen each rating **saves as it is clicked**, so
-> "Preview only" still records ratings on the server — it only skips
-> **Finish Survey**.
+> Preview means different things on the two layouts, because the layouts differ.
+> On the modern SPA nothing is clicked at all: it walks every question and lists
+> what it *would* pick, so nothing is recorded on the server. On the classic form
+> it fills the inputs but stops before Submit, so a page reload discards it.
 
 ### Supported layouts
 
@@ -160,7 +161,7 @@ the extension cannot read any other site, and it requests no localhost access.
 
 ```bash
 npm install     # jsdom, tests only
-npm test        # 23 tests (15 engine + 8 manifest)
+npm test        # 36 tests (15 engine + 12 wizard + 9 manifest)
 ```
 
 Every push runs the same suite in GitHub Actions on a clean runner.
