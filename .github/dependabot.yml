@@ -8,3 +8,9 @@ updates:
     open-pull-requests-limit: 3
     commit-message:
       prefix: deps
+    ignore:
+      # jsdom 31+ pulls an undici that needs zlib.createZstdDecompress (Node 22+),
+      # which crashes on the Node 18/20 this project supports. Revisit when the
+      # engines field moves to >=22.
+      - dependency-name: jsdom
+        update-types: ["version-update:semver-major"]

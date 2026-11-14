@@ -15,5 +15,5 @@ jobs:
           node-version: 20
       - name: Install test dependencies
         run: npm install
-      - name: Unit tests (engine + manifest contract)
+      - name: Unit tests (engine, wizard, manifest)
         run: npm test
