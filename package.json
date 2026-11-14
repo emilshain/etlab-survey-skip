@@ -8,7 +8,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/engine.test.mjs && node test/manifest.test.mjs"
+    "test": "node test/engine.test.mjs && node test/wizard.test.mjs && node test/manifest.test.mjs"
   },
   "devDependencies": {
     "jsdom": "^25.0.1"

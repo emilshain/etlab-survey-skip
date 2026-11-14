@@ -62,7 +62,7 @@
       questions: s.map(function (btn, i) {
         return {
           index: i,
-          label: clean(btn.innerText) || 'Q' + (i + 1),
+          label: clean(btn.innerText || btn.textContent) || 'Q' + (i + 1),
           text: clean(btn.getAttribute('aria-label')).slice(0, 120)
         };
       })
@@ -104,7 +104,7 @@
     var best = null;
     var bestRank = -1;
     options.forEach(function (opt) {
-      var rank = rankOf(opt.innerText);
+      var rank = rankOf(opt.innerText || opt.textContent);
       if (rank > bestRank) {
         bestRank = rank;
         best = opt;
@@ -209,7 +209,7 @@
       .map(function (card, index) {
         return {
           index: index,
-          text: clean(card.innerText).slice(0, 90),
+          text: clean(card.innerText || card.textContent).slice(0, 90),
           pending: !!card.querySelector('.sv-icon-pending') || /pending/i.test(clean(card.getAttribute('aria-label')))
         };
       })
