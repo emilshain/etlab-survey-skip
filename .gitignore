@@ -1,9 +1,38 @@
+# Dependencies
 node_modules/
+
+# Logs and build output
 *.log
 dist/
 
-# local Edge/Chrome test profiles used by scripts/
+# Local browser profiles used by scripts/ (contain your portal session)
 .edge-profile/
 .edge-profile*/
 .edge.pid
 .tmp-inject.js
+
+# Secrets and local state - never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.token
+*.secret
+*.crt
+.etlab-session.json
+.etlab-cache.json
+.bridge.log
+
+# Backups and archives
+*.tgz
+*.zip
+.backups/
+
+# Tool and OS noise
+.freebuff/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
