@@ -30,7 +30,7 @@ survey × 20 questions × 8 teachers = 160 ratings. This does them for you.
 | Vivaldi | ✅ supported | `vivaldi://extensions` |
 | Opera | ✅ supported | `opera://extensions` (enable Developer mode) |
 | Chromium (any build ≥102) | ✅ supported | `chrome://extensions` |
-| Mozilla Firefox 121+ | ✅ supported | Generated event-page build, see [Firefox](#firefox) |
+| Mozilla Firefox 140+ | ✅ supported | Generated event-page build, see [Firefox](#firefox) |
 | Safari | ❌ no | Requires an Xcode conversion and a signed app |
 
 "Supported" means the extension uses only standard Manifest V3 APIs that every
@@ -81,7 +81,7 @@ evaluations is not something extension stores accept.
 
 ### Firefox
 
-Firefox cannot load a service-worker extension, so it gets a generated build:
+Firefox 140+ cannot load a service-worker extension, so it gets a generated build:
 
 ```bash
 npm run build:firefox

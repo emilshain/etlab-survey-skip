@@ -55,6 +55,12 @@ test('declares a stable gecko id with a minimum version', () => {
   assert.match(firefox.browser_specific_settings.gecko.strict_min_version, /^\d+\.\d+$/);
 });
 
+test('declares that nothing is collected (AMO requirement)', () => {
+  assert.deepEqual(firefox.browser_specific_settings.gecko.data_collection_permissions, {
+    required: ['none']
+  });
+});
+
 test('keeps the popup and icons', () => {
   assert.equal(firefox.action.default_popup, chromium.action.default_popup);
   assert.deepEqual(firefox.icons, chromium.icons);
