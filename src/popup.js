@@ -9,12 +9,25 @@ const fillAllBtn = $('fillAll');
 
 let running = false;
 
+const LOG_KEY = 'lastRunLog';
+let persistTimer = null;
+
+/* The popup closes the moment it loses focus, which used to throw the run log
+ * away mid-survey. Keep the last few KB so reopening shows what happened. */
+function persistLog() {
+  clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    chrome.storage.local.set({ [LOG_KEY]: logEl.textContent.slice(-4000) });
+  }, 250);
+}
+
 function logLine(text, kind) {
   const span = document.createElement('span');
   span.className = kind || '';
   span.textContent = text + '\n';
   logEl.appendChild(span);
   logEl.scrollTop = logEl.scrollHeight;
+  persistLog();
 }
 
 function resetLog(text) {
@@ -157,4 +170,10 @@ $('strategy').addEventListener('change', () => {
 });
 ['answerIndex', 'comment', 'preview'].forEach((id) => $(id).addEventListener('change', saveSettings));
 
+async function restoreLog() {
+  const saved = await chrome.storage.local.get(LOG_KEY);
+  if (saved && saved[LOG_KEY]) logEl.textContent = saved[LOG_KEY];
+}
+
 loadSettings();
+restoreLog();

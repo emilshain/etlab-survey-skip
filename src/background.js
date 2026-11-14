@@ -434,6 +434,22 @@ async function fillAll(opts, preferredTabId) {
   await fillAllClassic(active, opts);
 }
 
+/* Show how many surveys are waiting on the toolbar icon, so the number is
+ * visible without opening the popup. Errors are ignored: the badge is a hint,
+ * never a reason to break a page. */
+chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
+  if (info.status !== 'complete' || !/etlab/i.test((tab && tab.url) || '')) return;
+
+  try {
+    const state = await callEngine(tabId, 'listState');
+    const text = state && state.hasList && state.pending ? String(state.pending) : '';
+    await chrome.action.setBadgeText({ tabId, text });
+    if (text) await chrome.action.setBadgeBackgroundColor({ tabId, color: '#24405e' });
+  } catch (error) {
+    /* not a survey list, or the tab went away */
+  }
+});
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.type === 'RUN_ONE') {
     (async () => {
