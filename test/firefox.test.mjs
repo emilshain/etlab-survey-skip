@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { firefoxManifest, GECKO_ID } from '../scripts/firefox-manifest.mjs';
+import { firefoxManifest, GECKO_ID, SUMMARY_SCRIPT } from '../scripts/firefox-manifest.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const chromium = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
@@ -38,7 +38,8 @@ test('keeps every permission and host permission', () => {
 
 test('uses an event page instead of a service worker', () => {
   assert.equal(firefox.background.service_worker, undefined);
-  assert.deepEqual(firefox.background.scripts, [chromium.background.service_worker]);
+  assert.deepEqual(firefox.background.scripts, [SUMMARY_SCRIPT, chromium.background.service_worker]);
+  assert.ok(firefox.background.scripts.includes('src/summary.js'), 'summary.js must load before background.js');
 });
 
 test('the background script it points at exists', () => {

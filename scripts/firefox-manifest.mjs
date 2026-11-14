@@ -18,6 +18,8 @@ export const GECKO_ID = 'etlab-survey-skip@emilshain';
 // (web-ext lint flags the mismatch otherwise).
 export const GECKO_MIN_VERSION = '140.0';
 
+export const SUMMARY_SCRIPT = 'src/summary.js';
+
 export function firefoxManifest(chromium, options = {}) {
   const out = JSON.parse(JSON.stringify(chromium));
 
@@ -28,7 +30,8 @@ export function firefoxManifest(chromium, options = {}) {
     throw new Error('manifest.json has no background.service_worker to convert');
   }
 
-  out.background = { scripts: [worker] };
+  // The event page has no importScripts, so shared code is listed explicitly.
+  out.background = { scripts: [SUMMARY_SCRIPT, worker] };
   out.browser_specific_settings = {
     gecko: {
       id: options.id || GECKO_ID,

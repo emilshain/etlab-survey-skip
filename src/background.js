@@ -1,3 +1,13 @@
+/* The preview summary is a pure function in summary.js so it can be tested
+ * against a real report. A service worker pulls it in with importScripts; a
+ * Firefox event page gets it from the manifest script list instead. */
+if (typeof importScripts === 'function') {
+  try { importScripts('summary.js'); } catch (error) { /* already loaded */ }
+}
+const previewSummary =
+  (self.ETLabSummary && self.ETLabSummary.previewSummary) ||
+  (() => 'Preview finished (summary unavailable).');
+
 /*
  * Background service worker: runs the engine in tabs.
  *
@@ -194,28 +204,6 @@ async function openWizard(tabId, timeoutMs = 15000) {
 /* Reload the survey list, open the first pending survey, fill it, submit it,
  * repeat until nothing is pending. Reloading each round means we never lose
  * track of which survey is which. */
-/* What a preview run would do, in one line: the distinct picks and how often
- * each one appears. Preview clicks nothing, so its result is never a
- * "submission" - the bulk loop must not treat it as a failure. */
-function previewSummary(report, title) {
-  const counts = new Map();
-  (report.picks || []).forEach((question) =>
-    (question.picks || []).forEach((pick) => {
-      if (!pick.label) return;
-      counts.set(pick.label, (counts.get(pick.label) || 0) + 1);
-    })
-  );
-  const answer =
-    [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([label, n]) => label + " x" + n)
-      .join(", ") || "nothing";
-  const name = String(title || "").replace(/s+/g, " ").slice(0, 45);
-  return (
-    "Preview only - \"" + name + "\": " + report.questions + " question(s), " +
-    report.total + " rating(s), nothing clicked. Would answer: " + answer + "."
-  );
-}
 
 async function fillAllWizard(tab, opts) {
   const origin = new URL(tab.url).origin;

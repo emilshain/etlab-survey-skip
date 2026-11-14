@@ -1,6 +1,6 @@
 {
   "name": "etlab-survey-skip",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "description": "Browser extension that fills and submits mandatory ETLab student surveys inside your own logged-in session.",
   "type": "module",
@@ -8,7 +8,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/engine.test.mjs && node test/wizard.test.mjs && node test/manifest.test.mjs && node test/firefox.test.mjs",
+    "test": "node test/engine.test.mjs && node test/wizard.test.mjs && node test/summary.test.mjs && node test/manifest.test.mjs && node test/firefox.test.mjs",
     "icons": "node scripts/make-icons.mjs",
     "build:firefox": "node scripts/build-firefox.mjs"
   },
