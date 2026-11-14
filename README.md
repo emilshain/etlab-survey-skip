@@ -30,7 +30,7 @@ survey × 20 questions × 8 teachers = 160 ratings. This does them for you.
 | Vivaldi | ✅ supported | `vivaldi://extensions` |
 | Opera | ✅ supported | `opera://extensions` (enable Developer mode) |
 | Chromium (any build ≥102) | ✅ supported | `chrome://extensions` |
-| Firefox | ❌ not yet | Needs an MV3 event-page port instead of a service worker |
+| Mozilla Firefox 121+ | ✅ supported | Generated event-page build, see [Firefox](#firefox) |
 | Safari | ❌ no | Requires an Xcode conversion and a signed app |
 
 "Supported" means the extension uses only standard Manifest V3 APIs that every
@@ -78,6 +78,26 @@ list of teachers and questions changes, and those come from the page itself.
 
 There is no store listing, by design: automating mandatory institutional
 evaluations is not something extension stores accept.
+
+### Firefox
+
+Firefox cannot load a service-worker extension, so it gets a generated build:
+
+```bash
+npm run build:firefox
+```
+
+Then `about:debugging` → **This Firefox** → **Load Temporary Add-on** → pick
+`dist-firefox/manifest.json`. The build is the same code with an MV3 **event
+page** instead of a service worker and a Gecko id (`etlab-survey-skip@emilshain`)
+so settings survive restarts.
+
+Two Firefox-specific notes:
+
+- A temporary add-on disappears when Firefox closes — load it again, or package
+  `dist-firefox/` as an `.xpi` for a permanent install.
+- Firefox asks you to grant access to `etlab.app` / `etlab.in` on first use;
+  the extension does nothing until it has it.
 
 ### Updating
 

@@ -36,3 +36,6 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# generated Firefox build
+dist-firefox/
