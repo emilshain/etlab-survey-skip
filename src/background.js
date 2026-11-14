@@ -194,6 +194,29 @@ async function openWizard(tabId, timeoutMs = 15000) {
 /* Reload the survey list, open the first pending survey, fill it, submit it,
  * repeat until nothing is pending. Reloading each round means we never lose
  * track of which survey is which. */
+/* What a preview run would do, in one line: the distinct picks and how often
+ * each one appears. Preview clicks nothing, so its result is never a
+ * "submission" - the bulk loop must not treat it as a failure. */
+function previewSummary(report, title) {
+  const counts = new Map();
+  (report.picks || []).forEach((question) =>
+    (question.picks || []).forEach((pick) => {
+      if (!pick.label) return;
+      counts.set(pick.label, (counts.get(pick.label) || 0) + 1);
+    })
+  );
+  const answer =
+    [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, n]) => label + " x" + n)
+      .join(", ") || "nothing";
+  const name = String(title || "").replace(/s+/g, " ").slice(0, 45);
+  return (
+    "Preview only - \"" + name + "\": " + report.questions + " question(s), " +
+    report.total + " rating(s), nothing clicked. Would answer: " + answer + "."
+  );
+}
+
 async function fillAllWizard(tab, opts) {
   const origin = new URL(tab.url).origin;
   let submitted = 0;
@@ -235,6 +258,12 @@ async function fillAllWizard(tab, opts) {
 
     try {
       const report = await fillWizard(tab.id, opts);
+      // A preview is a sample of one survey, not a batch: report it and stop.
+      if (opts.preview) {
+        progress({ phase: "done", message: previewSummary(report, opened.text) });
+        return;
+      }
+
       if (report.submitted) {
         submitted++;
         consecutive = 0;
