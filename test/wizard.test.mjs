@@ -31,7 +31,7 @@ function row(labels, active) {
   );
 }
 
-function surveyHtml({ steps = 2, rows = 8, labels = OPTIONS } = {}) {
+function surveyHtml({ steps = 2, rows = 8, labels = OPTIONS, heading = 'Teaching quality' } = {}) {
   const nav = Array.from(
     { length: steps },
     (_, i) =>
@@ -40,7 +40,7 @@ function surveyHtml({ steps = 2, rows = 8, labels = OPTIONS } = {}) {
   return `<!doctype html><html><body>
     <div class="sd-hero-summary"><span>0/${steps * rows} ready</span></div>
     <nav>${nav}</nav>
-    <div class="sd-card"><h3>Teaching quality</h3>
+    <div class="sd-card"><h3>${heading}</h3>
       ${Array.from({ length: rows }, () => row(labels)).join('')}
       <div class="sd-save-state">Saved</div>
     </div>
@@ -174,6 +174,29 @@ test('opening a card with nothing pending is an explicit error', () => {
   assert.match(result.error, /No pending survey card/);
 });
 
+
+console.log("Negatively worded questions");
+
+test("a negative statement picks the lowest rating", () => {
+  const dom = load(surveyHtml({ heading: "Percentage of class not engaged" }));
+  const w = dom.window.ETLabEngine;
+  const r = dom.window.document.querySelector(".sd-options-row");
+  assert.equal(w.wizardInternals.pickIn(r, "best", 0, "Percentage of class not engaged").textContent, "Poor 1");
+});
+
+test("a positive statement still picks the highest", () => {
+  const dom = load(surveyHtml());
+  const w = dom.window.ETLabEngine;
+  const r = dom.window.document.querySelector(".sd-options-row");
+  assert.equal(w.wizardInternals.pickIn(r, "best", 0, "Teaching quality").textContent, "Excellent 5");
+});
+
+test("average stays in the middle whatever the wording", () => {
+  const dom = load(surveyHtml());
+  const w = dom.window.ETLabEngine;
+  const r = dom.window.document.querySelector(".sd-options-row");
+  assert.equal(w.wizardInternals.pickIn(r, "average", 0, "Number of days absent").textContent, "Good 3");
+});
 
 console.log("Preview (must not click)");
 

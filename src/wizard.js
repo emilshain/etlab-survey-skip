@@ -64,6 +64,11 @@
     return score === null ? 0 : score / 20;
   }
 
+  /* Negatively worded questions want the lowest number, not the highest:
+   * "Percentage of class not engaged" -> "< 10 %". Same rule set as the
+   * classic engine so both layouts answer consistently. */
+  var NEGATIVE_Q = /not engaged|not attend|absent|bunk|missed|irregular|irresponsib|negative|complain|how many (class|day|time)|no of (class|day|time)/i;
+
   function plan(doc) {
     var s = steps(doc);
     var rows = doc.querySelectorAll('.sd-options-row').length;
@@ -97,7 +102,7 @@
     }, 2000, 50);
   }
 
-  function pickIn(row, strategy, answerIndex) {
+  function pickIn(row, strategy, answerIndex, questionText) {
     var options = Array.prototype.slice.call(row.querySelectorAll('.sd-option'));
     if (!options.length) return null;
     if (strategy === 'first') return options[0];
@@ -111,11 +116,13 @@
       return options[Math.min(Math.max(Number(answerIndex) || 0, 0), options.length - 1)];
     }
 
+    var negative = NEGATIVE_Q.test(questionText || '');
     var best = null;
-    var bestRank = -1;
+    var bestRank = negative ? Infinity : -1;
     options.forEach(function (opt) {
       var rank = rankOf(opt.innerText || opt.textContent);
-      if (rank > bestRank) {
+      var better = negative ? rank < bestRank : rank > bestRank;
+      if (better) {
         bestRank = rank;
         best = opt;
       }
@@ -132,9 +139,13 @@
     var navigated = await gotoStep(doc, index);
     await sleep(150);
 
+    var headingEl = doc.querySelector('.sd-card h3');
+    var questionText = clean(headingEl ? headingEl.textContent : '');
+
     var rows = Array.prototype.slice.call(doc.querySelectorAll('.sd-options-row'));
     var filled = 0;
     var already = 0;
+    var retried = 0;
 
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
@@ -142,13 +153,23 @@
         already++;
         continue;
       }
-      var choice = pickIn(row, strategy, answerIndex);
+      var choice = pickIn(row, strategy, answerIndex, questionText);
       if (!choice) continue;
       choice.click();
       filled++;
-      await waitUntil(function () {
+      var settled = await waitUntil(function () {
         return !!row.querySelector('.sd-option.active');
       }, 600, 40);
+
+      // A click can land while React is mid-render and be lost. One retry is
+      // cheap and turns a stuck rating into a recovered one.
+      if (!settled) {
+        retried++;
+        choice.click();
+        await waitUntil(function () {
+          return !!row.querySelector('.sd-option.active');
+        }, 800, 40);
+      }
     }
 
     // Wait for "Saving…" to clear (max ~4s) so the next question starts clean.
@@ -160,7 +181,6 @@
       await sleep(200);
     }
 
-    var heading = doc.querySelector('.sd-card h3');
     var progress = doc.querySelector('.sd-question-progress strong');
     return {
       index: index,
@@ -168,7 +188,8 @@
       rows: rows.length,
       filled: filled,
       already: already,
-      heading: clean(heading ? heading.textContent : '').slice(0, 120),
+      retried: retried,
+      heading: questionText.slice(0, 120),
       questionProgress: clean(progress ? progress.textContent : ''),
       hero: heroText(doc)
     };
@@ -181,15 +202,16 @@
     var index = Number(opts.index) || 0;
     var navigated = await gotoStep(doc, index);
     var rows = Array.prototype.slice.call(doc.querySelectorAll('.sd-options-row'));
-    var heading = doc.querySelector('.sd-card h3');
+    var headingEl = doc.querySelector('.sd-card h3');
+    var questionText = clean(headingEl ? headingEl.textContent : '');
 
     return {
       index: index,
       navigated: navigated,
-      heading: clean(heading ? heading.textContent : '').slice(0, 90),
+      heading: questionText.slice(0, 90),
       rows: rows.length,
       picks: rows.map(function (row) {
-        var choice = pickIn(row, opts.strategy || 'best', opts.answerIndex || 0);
+        var choice = pickIn(row, opts.strategy || 'best', opts.answerIndex || 0, questionText);
         var active = row.querySelector('.sd-option.active');
         return {
           label: clean(choice ? choice.innerText || choice.textContent : ''),
