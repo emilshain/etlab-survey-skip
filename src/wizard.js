@@ -28,6 +28,20 @@
     return new Promise(function (r) { setTimeout(r, ms); });
   };
 
+  /* React owns these clicks, so the DOM updates a frame or two later. Waiting
+   * for the change is faster than a fixed sleep on a quick page and safer than
+   * one on a slow page. Resolves false if the deadline passes. */
+  function waitUntil(check, timeoutMs, stepMs) {
+    var deadline = Date.now() + (timeoutMs || 600);
+    return new Promise(function (resolve) {
+      (function loop() {
+        if (check()) return resolve(true);
+        if (Date.now() > deadline) return resolve(false);
+        setTimeout(loop, stepMs || 40);
+      })();
+    });
+  }
+
   function isWizard(doc) {
     return !!doc.querySelector('.sd-options-row .sd-option');
   }
@@ -74,17 +88,13 @@
     var btn = all[index];
     if (!btn) throw new Error('Question ' + (index + 1) + ' is not on this page.');
 
-    if (!btn.classList.contains('active')) {
-      btn.click();
-      await sleep(400);
-    }
+    var name = clean(btn.innerText || btn.textContent);
+    if (!btn.classList.contains('active')) btn.click();
 
-    for (var i = 0; i < 12; i++) {
+    return await waitUntil(function () {
       var active = doc.querySelector('.sd-step-question.active');
-      if (active && clean(active.innerText) === clean(btn.innerText)) return true;
-      await sleep(150);
-    }
-    return false;
+      return !!active && clean(active.innerText || active.textContent) === name;
+    }, 2000, 50);
   }
 
   function pickIn(row, strategy, answerIndex) {
@@ -136,7 +146,9 @@
       if (!choice) continue;
       choice.click();
       filled++;
-      await sleep(110);
+      await waitUntil(function () {
+        return !!row.querySelector('.sd-option.active');
+      }, 600, 40);
     }
 
     // Wait for "Saving…" to clear (max ~4s) so the next question starts clean.
@@ -159,6 +171,31 @@
       heading: clean(heading ? heading.textContent : '').slice(0, 120),
       questionProgress: clean(progress ? progress.textContent : ''),
       hero: heroText(doc)
+    };
+  }
+
+  /* What would be chosen on a question, without clicking a single option: only
+   * the step navigation happens, so nothing is recorded on the server. */
+  async function inspectQuestion(doc, opts) {
+    opts = opts || {};
+    var index = Number(opts.index) || 0;
+    var navigated = await gotoStep(doc, index);
+    var rows = Array.prototype.slice.call(doc.querySelectorAll('.sd-options-row'));
+    var heading = doc.querySelector('.sd-card h3');
+
+    return {
+      index: index,
+      navigated: navigated,
+      heading: clean(heading ? heading.textContent : '').slice(0, 90),
+      rows: rows.length,
+      picks: rows.map(function (row) {
+        var choice = pickIn(row, opts.strategy || 'best', opts.answerIndex || 0);
+        var active = row.querySelector('.sd-option.active');
+        return {
+          label: clean(choice ? choice.innerText || choice.textContent : ''),
+          already: clean(active ? active.innerText || active.textContent : '')
+        };
+      })
     };
   }
 
@@ -247,6 +284,7 @@
   engine.wizardIs = isWizard;
   engine.wizardPlan = plan;
   engine.wizardFillQuestion = fillQuestion;
+  engine.wizardInspectQuestion = inspectQuestion;
   engine.wizardSubmit = submit;
   engine.wizardPendingCards = pendingCards;
   engine.wizardOpenCard = openCard;

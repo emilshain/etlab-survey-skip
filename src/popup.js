@@ -93,6 +93,17 @@ fillThisBtn.addEventListener('click', async () => {
     }
     const r = res.report;
 
+    if (r.mode === 'wizard' && r.preview && r.picks) {
+      logLine(`Preview: ${r.questions} question(s), ${r.total} target(s). Nothing was clicked.`, 'ok');
+      r.picks.forEach((q) => {
+        const labels = [...new Set(q.picks.map((p) => p.label))].filter(Boolean);
+        const done = q.picks.filter((p) => p.already).length;
+        logLine(`  Q${q.index + 1} ${q.heading ? '— ' + q.heading : ''}`);
+        logLine(`     would pick: ${labels.join(' / ') || 'nothing'}${done ? ` (${done} already set)` : ''}`);
+      });
+      return;
+    }
+
     if (r.mode === 'wizard') {
       logLine(`${r.answered} rating(s) selected across ${r.questions} question(s).`, 'ok');
       logLine(`Progress on the page: ${r.hero || 'unknown'}`);

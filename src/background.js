@@ -115,6 +115,33 @@ async function fillWizard(tabId, opts) {
     message: `Survey: ${plan.questions.length} question(s) x ${plan.rowsPerQuestion} target(s) = ${plan.total} rating(s). Starting at ${plan.hero}.`
   });
 
+  /* Preview walks every question and reports what it *would* click. No option
+   * is ever clicked, so nothing is recorded on the server - unlike the old
+   * preview, which still auto-saved each rating. */
+  if (opts.preview) {
+    const picks = [];
+    for (let i = 0; i < plan.questions.length; i++) {
+      const seen = await callEngine(tabId, 'wizardInspectQuestion', { ...opts, index: i });
+      if (seen && seen.picks) picks.push(seen);
+      progress({
+        phase: 'item',
+        ok: true,
+        message: `Q${i + 1}/${plan.questions.length}: ${(seen && seen.rows) || 0} target(s), nothing clicked`
+      });
+    }
+    return {
+      mode: 'wizard',
+      questions: plan.questions.length,
+      total: plan.total,
+      answered: 0,
+      hero: plan.hero,
+      submitted: false,
+      submitLabel: null,
+      preview: true,
+      picks
+    };
+  }
+
   let answered = 0;
   for (let i = 0; i < plan.questions.length; i++) {
     const result = await callEngine(tabId, 'wizardFillQuestion', { ...opts, index: i });
@@ -171,6 +198,7 @@ async function fillAllWizard(tab, opts) {
   const origin = new URL(tab.url).origin;
   let submitted = 0;
   let failed = 0;
+  let consecutive = 0;
   const rounds = 25;
 
   for (let round = 0; round < rounds; round++) {
@@ -194,7 +222,8 @@ async function fillAllWizard(tab, opts) {
     if (!opened || opened.error) {
       failed++;
       progress({ phase: 'item', ok: false, message: 'Could not open survey: ' + ((opened && opened.error) || 'unknown') });
-      break;
+      if (++consecutive >= 2) break;
+      continue;
     }
 
     const info = await openWizard(tab.id);
@@ -208,6 +237,7 @@ async function fillAllWizard(tab, opts) {
       const report = await fillWizard(tab.id, opts);
       if (report.submitted) {
         submitted++;
+        consecutive = 0;
         progress({ phase: 'item', ok: true, message: `Submitted "${opened.text.slice(0, 45)}" (${report.hero}).` });
       } else {
         failed++;
@@ -216,12 +246,16 @@ async function fillAllWizard(tab, opts) {
           ok: false,
           message: `Not submitted ("${opened.text.slice(0, 45)}"): ${report.error || 'stopped'}`
         });
-        break;
+        // Keep going with the rest: one bad survey should not abandon the run.
+        // Two failures in a row means something systemic (login, markup) - stop.
+        if (++consecutive >= 2) break;
+        continue;
       }
     } catch (error) {
       failed++;
       progress({ phase: 'item', ok: false, message: 'Error: ' + error.message });
-      break;
+      if (++consecutive >= 2) break;
+      continue;
     }
 
     await sleep(1200);

@@ -54,4 +54,9 @@ test('popup title matches the extension name', () => {
   assert.match(html, /<h1>ETLab Survey Skip<\/h1>/);
 });
 
+test("every icon the manifest references exists", () => {
+  Object.values(manifest.icons || {}).forEach((p) =>
+    assert.ok(fs.existsSync(path.join(root, p)), "missing " + p));
+});
+
 console.log('\nAll ' + passed + ' manifest tests passed.');

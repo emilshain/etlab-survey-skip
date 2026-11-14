@@ -174,4 +174,22 @@ test('opening a card with nothing pending is an explicit error', () => {
   assert.match(result.error, /No pending survey card/);
 });
 
+
+console.log("Preview (must not click)");
+
+try {
+  const dom = load(surveyHtml());
+  const w = dom.window.ETLabEngine;
+  const seen = await w.wizardInspectQuestion(dom.window.document, { index: 0, strategy: "average" });
+  assert.equal(seen.rows, 8);
+  assert.equal(seen.picks.length, 8);
+  assert.deepEqual([...new Set(seen.picks.map((p) => p.label))], ["Good 3"]);
+  assert.equal(dom.window.document.querySelectorAll(".sd-option.active").length, 0);
+  passed++;
+  console.log("  ok   preview reports choices without clicking");
+} catch (error) {
+  console.log("  FAIL preview reports choices without clicking -> " + error.message);
+  process.exitCode = 1;
+}
+
 console.log('\nAll ' + passed + ' wizard tests passed.');
