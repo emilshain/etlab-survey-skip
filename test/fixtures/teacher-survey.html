@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ETLab - Teacher Evaluation</title></head>
+<body>
+  <div class="page-head"><h3>Teacher Evaluation - Data Structures (CS301)</h3></div>
+  <form action="/student/survey/save" method="post" id="surveyForm">
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+          <td class="col-md-6">1. Knowledge of the Teacher</td>
+          <td><label><input type="radio" name="q1" value="5"> Excellent</label></td>
+          <td><label><input type="radio" name="q1" value="4"> Very Good</label></td>
+          <td><label><input type="radio" name="q1" value="3"> Good</label></td>
+          <td><label><input type="radio" name="q1" value="2"> Average</label></td>
+          <td><label><input type="radio" name="q1" value="1"> Poor</label></td>
+        </tr>
+        <tr>
+          <td class="col-md-6">2. Clarity &amp; Understandability</td>
+          <td><label><input type="radio" name="q2" value="5"> Excellent</label></td>
+          <td><label><input type="radio" name="q2" value="4"> Very Good</label></td>
+          <td><label><input type="radio" name="q2" value="3"> Good</label></td>
+          <td><label><input type="radio" name="q2" value="2"> Average</label></td>
+          <td><label><input type="radio" name="q2" value="1"> Poor</label></td>
+        </tr>
+        <tr>
+          <td class="col-md-6">3. Willingness to help</td>
+          <td><label><input type="radio" name="q3" value="5"> Excellent</label></td>
+          <td><label><input type="radio" name="q3" value="4"> Very Good</label></td>
+          <td><label><input type="radio" name="q3" value="3"> Good</label></td>
+          <td><label><input type="radio" name="q3" value="2"> Average</label></td>
+          <td><label><input type="radio" name="q3" value="1"> Poor</label></td>
+        </tr>
+        <tr>
+          <td class="col-md-6">4. Percentage of class not engaged</td>
+          <td><label><input type="radio" name="q4" value="1"> &lt; 10%</label></td>
+          <td><label><input type="radio" name="q4" value="2"> 10 - 20%</label></td>
+          <td><label><input type="radio" name="q4" value="3"> 20 - 30%</label></td>
+          <td><label><input type="radio" name="q4" value="4"> &gt; 30%</label></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="form-group">
+      <label for="suggestion">Suggestions / Remarks</label>
+      <textarea class="form-control" id="suggestion" name="suggestion" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="submitAnswers">Submit Answers</button>
+    <button type="reset" class="btn btn-default">Reset</button>
+  </form>
+</body>
+</html>

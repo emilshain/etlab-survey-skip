@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ETLab Survey Auto</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>ETLab Survey Auto</h1>
+    <p class="sub">Fills surveys in your own logged-in session.</p>
+  </header>
+
+  <div class="row">
+    <label for="strategy">Answers</label>
+    <select id="strategy">
+      <option value="best">Best option (Excellent / Strongly Agree)</option>
+      <option value="average">Average / middle option (Good, Neutral)</option>
+      <option value="first">First option in every question</option>
+      <option value="index">Specific option number</option>
+      <option value="random">Random</option>
+    </select>
+  </div>
+
+  <div class="row" id="indexRow" hidden>
+    <label for="answerIndex">Option #</label>
+    <input type="number" id="answerIndex" min="1" value="1">
+    <span class="hint">1 = first option</span>
+  </div>
+
+  <div class="row">
+    <label for="comment">Comment boxes</label>
+    <input type="text" id="comment" value="Good">
+  </div>
+
+  <label class="check">
+    <input type="checkbox" id="preview">
+    Preview only &mdash; fill but don't submit
+  </label>
+
+  <div class="actions">
+    <button id="fillThis" class="primary">Fill this page</button>
+    <button id="fillAll">Complete all pending</button>
+  </div>
+
+  <pre id="log" class="log">Ready. Open a survey, or open the survey list and press "Complete all pending".</pre>
+
+  <script src="popup.js"></script>
+</body>
+</html>

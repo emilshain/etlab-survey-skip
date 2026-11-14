@@ -1,0 +1,9 @@
+node_modules/
+*.log
+dist/
+
+# local Edge/Chrome test profiles used by scripts/
+.edge-profile/
+.edge-profile*/
+.edge.pid
+.tmp-inject.js

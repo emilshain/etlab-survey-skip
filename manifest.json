@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "ETLab Survey Auto",
+  "version": "1.1.0",
+  "description": "Fills and submits ETLab student surveys in one click, inside your own logged-in session.",
+  "minimum_chrome_version": "102",
+  "permissions": ["scripting", "tabs", "storage"],
+  "host_permissions": [
+    "https://*.etlab.app/*",
+    "https://etlab.app/*",
+    "https://*.etlab.in/*",
+    "https://etlab.in/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "ETLab Survey Auto"
+  }
+}
