@@ -1,4 +1,4 @@
-# ETLab Survey Auto
+# ETLab Survey Skip
 
 A browser extension that fills and submits your **ETLab student-portal surveys**
 (teacher evaluations) in one click, using the session you are already logged in
@@ -27,7 +27,7 @@ survey × 20 questions × 8 teachers = 160 ratings. This does them for you.
 2. Open `edge://extensions` (or `chrome://extensions`).
 3. Turn on **Developer mode**.
 4. **Load unpacked** → pick the folder that contains `manifest.json`.
-5. Pin **ETLab Survey Auto** from the extensions menu.
+5. Pin **ETLab Survey Skip** from the extensions menu.
 
 ## Use
 

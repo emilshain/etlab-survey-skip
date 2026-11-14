@@ -1,6 +1,6 @@
 {
-  "name": "etlab-survey-auto",
-  "version": "1.1.0",
+  "name": "etlab-survey-skip",
+  "version": "1.2.0",
   "private": true,
   "description": "Browser extension that fills and submits mandatory ETLab student surveys inside your own logged-in session.",
   "type": "module",
