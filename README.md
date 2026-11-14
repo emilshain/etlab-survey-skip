@@ -7,27 +7,85 @@ with. No password is ever typed, stored or transmitted.
 ETLab blocks the rest of the portal until those surveys are done — one click per
 survey × 20 questions × 8 teachers = 160 ratings. This does them for you.
 
-> Looking for the calendar half? That is a separate project:
-> [`ETLab2ICS`](../ETLab2ICS) turns the portal calendar into a Thunderbird feed.
-> Nothing here depends on it, and vice versa.
+- Works on **any Chromium-based browser** (Edge, Chrome, Brave, Opera, Vivaldi…)
+- Works on **Windows, macOS and Linux** — it's plain JavaScript, no build step
+- Works on **any ETLab institute** hosted on `etlab.app` / `etlab.in`, not just one college
+- Handles **both survey layouts** ETLab has shipped: the modern SPA and the older form
+
+> Calendar instead of surveys? That's the companion project
+> [`ETLab2ICS`](https://github.com/emilshain/etlab2ics) — it turns the portal
+> calendar into an iCalendar feed. The two are independent: install either.
+
+---
+
+## Compatibility
+
+### Browsers
+
+| Browser | Status | Extensions page |
+| --- | --- | --- |
+| Microsoft Edge | ✅ tested | `edge://extensions` |
+| Google Chrome | ✅ supported | `chrome://extensions` |
+| Brave | ✅ supported | `brave://extensions` |
+| Vivaldi | ✅ supported | `vivaldi://extensions` |
+| Opera | ✅ supported | `opera://extensions` (enable Developer mode) |
+| Chromium (any build ≥102) | ✅ supported | `chrome://extensions` |
+| Firefox | ❌ not yet | Needs an MV3 event-page port instead of a service worker |
+| Safari | ❌ no | Requires an Xcode conversion and a signed app |
+
+"Supported" means the extension uses only standard Manifest V3 APIs that every
+Chromium browser implements; it is *tested* on Edge. Anything Chromium 102 or
+newer should load it unchanged.
+
+### Platforms
+
+| OS | Status |
+| --- | --- |
+| Windows 10/11 | ✅ tested |
+| macOS (Edge/Chrome/Brave) | ✅ should work — same engine |
+| Linux (Chromium, Chrome, Brave) | ✅ should work — same engine |
+
+### Portals
+
+| Portal | Status |
+| --- | --- |
+| `students.etlab.app` (modern SPA) | ✅ tested live |
+| Other institutes on `*.etlab.app` / `*.etlab.in` | ✅ should work — no institute name is hard-coded |
+| Older ETLab deployments (classic form) | ✅ supported by `src/engine.js` |
+
+The extension never contains your college's name. It matches ETLab's markup, so
+any institute running the same portal software is handled identically — only the
+list of teachers and questions changes, and those come from the page itself.
 
 ---
 
 ## Requirements
 
-- **Microsoft Edge or Google Chrome 102+** (Manifest V3).
-- A logged-in ETLab account. Nothing else — no Node, no npm, no build step.
+- A Chromium-based browser, version 102 or newer.
+- A logged-in ETLab account.
+- Nothing else: no Node, no npm, no build step, no account with anyone.
 
 ---
 
 ## Install
 
-1. Keep this folder somewhere permanent; the browser loads the extension from
-   this path.
-2. Open `edge://extensions` (or `chrome://extensions`).
-3. Turn on **Developer mode**.
-4. **Load unpacked** → pick the folder that contains `manifest.json`.
-5. Pin **ETLab Survey Skip** from the extensions menu.
+1. Keep this folder somewhere permanent — the browser loads the extension from
+   this path, so moving it later requires re-adding it.
+2. Open your browser's extensions page (table above) and turn on
+   **Developer mode**.
+3. Click **Load unpacked** and pick the folder containing `manifest.json`.
+4. Pin **ETLab Survey Skip** from the extensions menu.
+
+There is no store listing, by design: automating mandatory institutional
+evaluations is not something extension stores accept.
+
+### Updating
+
+Pull the new files, then **Remove** the extension and **Load unpacked** again.
+A plain *Reload* can keep a stale service-worker cache — if the behaviour looks
+old, check the version number on the card.
+
+---
 
 ## Use
 
@@ -48,7 +106,7 @@ and repeats until nothing is pending. For a single survey, open it and press
 | Comment boxes | `Good` | Text for empty suggestion fields |
 | Preview only | off | Fill without pressing Submit / Finish Survey |
 
-Settings are remembered in `chrome.storage.local`.
+Settings are remembered per browser profile.
 
 > On the modern survey screen each rating **saves as it is clicked**, so
 > "Preview only" still records ratings on the server — it only skips
@@ -64,7 +122,8 @@ Settings are remembered in `chrome.storage.local`.
 How the answers are chosen:
 
 - Options are ranked by their trailing value, so `Excellent 5` beats `Fair 2`
-  and "average" means the middle option regardless of order.
+  and "average" means the middle option regardless of order or language of the
+  label.
 - Reversed questions are handled: *"Percentage of class not engaged"* → **< 10 %**,
   *"Number of days you were absent"* → **0 - 3 days**.
 - Text you already typed is never overwritten, and nothing is submitted while a
@@ -90,9 +149,10 @@ popup.js  ──RUN_ONE / RUN_ALL──▶  background.js (service worker)
 | `src/engine.js` | Classic forms: radios, dropdowns, comments, Submit |
 | `src/popup.html/.css/.js` | Toolbar UI and saved settings |
 | `test/engine.test.mjs` | 15 unit tests against captured ETLab HTML |
+| `test/manifest.test.mjs` | 8 packaging-contract tests |
 
-Host access is limited to `*.etlab.app` / `*.etlab.in` — the extension cannot
-read any other site.
+Host access is limited to `https://*.etlab.app/*` and `https://*.etlab.in/*` —
+the extension cannot read any other site, and it requests no localhost access.
 
 ---
 
@@ -103,8 +163,10 @@ npm install     # jsdom, tests only
 npm test        # 23 tests (15 engine + 8 manifest)
 ```
 
+Every push runs the same suite in GitHub Actions on a clean runner.
+
 The live-testing helpers in `scripts/` drive a real browser over the DevTools
-protocol (they need Edge started with `--remote-debugging-port=9222`; the
+protocol (they need a Chromium started with `--remote-debugging-port=9222`; the
 extension itself never uses them):
 
 | Script | Purpose |
@@ -121,11 +183,12 @@ extension itself never uses them):
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `Error at property 'args': Value is unserializable` | Edge is running a cached copy of the old service worker | `edge://extensions` → **Remove** → **Load unpacked** again. A plain **Reload** can keep the stale worker — check the version on the card. |
+| `Error at property 'args': Value is unserializable` | The browser is running a cached copy of an old service worker | Remove the extension and **Load unpacked** again. A plain *Reload* can keep the stale worker — check the version on the card. |
 | `No survey questions found on this page` | You're not on a survey | Open a survey, or use **Complete all pending** from `/surveys` |
 | `No "Finish Survey"/Submit button here` | Not on the last question | Let the run finish, or open Q20 and press **Fill this page** |
 | Nothing happens at all | The page isn't ETLab | The extension refuses to act on other sites by design |
 | Popup closes mid-run | Normal — the worker keeps going | Reopen the popup to see the log |
+| Options look wrong for one question | ETLab shipped a new statement style | Use **Preview only** and report the question text |
 
 ---
 
@@ -134,11 +197,12 @@ extension itself never uses them):
 Against the live portal, signed in: the survey list reads correctly, a pending
 survey opens, `20 questions × 8 faculty = 160` rating targets are detected, and
 filling question 1 selected **8/8** ratings — the portal's own counter moved
-`0/160 → 8/160`. All 23 tests pass (15 engine + 8 manifest).
+`0/160 → 8/160`. Loading in a real Edge instance reports
+`ETLab Survey Skip 1.2.0`, and all 23 tests pass (15 engine + 8 manifest).
 
 **Not verified:** a complete 20-question run through the final **Finish Survey**
-click, on a real account (stopped early to avoid a long live run; the
-per-question path is the same one proven above).
+click on a real account, and behaviour on browsers/OSes other than Edge on
+Windows (same Chromium engine, but untested there).
 
 ---
 
@@ -146,8 +210,11 @@ per-question path is the same one proven above).
 
 - If ETLab changes its markup the extension stops and reports instead of
   guessing. Use **Preview only** to inspect what it picked.
+- Firefox and Safari are not supported yet.
 - These are your own evaluations of your teachers. Submitting the same answer
   everywhere is your choice — the college can see the responses and their
   timestamps.
 - Unofficial and unaffiliated with ETLab / Etuwa Concepts. Use it on your own
   account, at your own risk.
+
+Licensed under the [MIT License](LICENSE).
